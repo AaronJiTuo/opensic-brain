@@ -17,16 +17,23 @@
 opensic-brain/
 ├── README.md
 ├── AGENTS.md
+├── .brain-template.json # 模板协议版本与托管文件清单
+├── .skills/           # 项目内流程技能，按需由 AGENTS.md 显式触发
 ├── Releases/          # 定稿文档（唯一事实来源）
-├── Drafts/            # 草稿与上下文素材
+├── Drafts/            # 草稿与上下文素材，含 00_灵感索引.md
 └── Archive/           # 历史归档
 ```
 
 ## 工作流
 
 1. 新想法与对话先进入 `Drafts/`。
-2. 草稿反复打磨到可执行后，迁移到 `Releases/`。
-3. 被替代、完成使命或过时内容迁移到 `Archive/`。
+2. 从 AI 聊天页面或分享链接完整抓取对话时，按 `.skills/chat-capture/SKILL.md` 保存为 Draft。
+3. 草稿反复打磨到可执行后，迁移到 `Releases/`；从 Draft 生成 Release 时，按 `.skills/release-organizer/SKILL.md` 处理来源、灵感索引与 Draft 去留。
+4. 被替代、完成使命或过时内容迁移到 `Archive/`。
+
+## 模板协议
+
+本 brain 已接入 `brain-template` 协议，当前版本见 `.brain-template.json`。未来如果需要同步模板机制，请按 `.skills/template-upgrader/SKILL.md` 执行；升级只能补齐流程协议，不能覆盖 OpenSiC 项目事实与定稿文档。
 
 ## 命名与品牌约定（简版）
 
