@@ -64,10 +64,25 @@ opensic-brain/
 - 主要域名：`opensic.ai`，`opensic.cn` 作为中国区预留。
 - 标识倾向：钻石语义，文本场景可用 `💎` 作为轻量识别符号。
 
+## 模板协议
+
+本 brain 已接入 `brain-template` 协议，当前版本见 `.brain-template.json`（稳定版 `2.4.0`，来源 Release `v2.4.0` / `133b6c781efe39f1d3bba5ec8af6f16d6d5b2543`）。  
+需要同步模板机制时，按 `.skills/template-upgrader/SKILL.md` 执行；升级只补齐流程协议，不覆盖 OpenSiC 项目事实与定稿文档。
+
+正常任务结束后，agent 会对权威来源 `github.com/AaronJiTuo/brain-template` 的正式稳定 Release 做轻量只读检查；无新版或检查失败时不提示，发现更高版本时询问是否升级。用户明确同意后直接完成标准稳定升级，不再二次确认。
+
 ## 如何让 agent 开始
 
-可直接使用下面这句作为新任务前置：
+若这是尚未初始化、`Releases/` 还没有项目内容的新 brain：
 
 ```text
-请先读 `AGENTS.md`，再读 `Releases/00_项目总览.md` 和 `.records/CURRENT.md`；只按 CURRENT 的指向读取少量相关 Record，不要全文扫描历史。读完后，请用几句话复述你对项目和当前状态的理解，等我确认无误后再开始：<你的任务>
+请先读 AGENTS.md。若这是尚未初始化的新 brain，请按 .skills/brain-initializer/SKILL.md 开始；先通过对话了解项目，等我确认后再落盘。
 ```
+
+让新 agent 接手已有 brain（本仓库已有 `Releases/00_项目总览.md`）：
+
+```text
+请先读 AGENTS.md，并按 .skills/brain-handoff/SKILL.md 接手当前项目。如果我同时给出了具体任务且不存在会实质改变执行结果的歧义，请在简要报告理解后直接继续，不要等待重复确认。
+```
+
+即使工具会自动读取 `AGENTS.md`，显式要求先读它，仍有助于不同工具从同一套规则开始。
