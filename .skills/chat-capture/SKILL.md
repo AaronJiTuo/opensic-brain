@@ -21,10 +21,11 @@
 - 长对话必须在滚动过程中持续采集和去重，不要等滚动结束后只抓一次 DOM。
 - 默认只保存一个 Markdown Draft，不额外保存 `.html` 或 `.json`。
 - 对话正文保持原样，不改写正文中的 Markdown 标题层级。
-- 说话人边界用独立 HTML marker 表示，不使用 Markdown 标题，也不包裹正文。
+- 说话人边界用独立、整行高对比的 HTML marker 表示：用户使用蓝色，assistant 使用绿色；不使用 Markdown 标题，也不包裹正文。
 - 最终 Draft 只保存正式对话消息，不保存 LLM 的思考过程；思考过程对后期阅读和项目沉淀无用。
 - 平台展示的搜索过程、工具调用过程、调试日志等非正式消息默认不写入 Draft，除非用户明确要求保留。
 - 如果无法证明完整，应在 Draft 中明确标记 `capture_status: partial` 或 `capture_status: uncertain`，不要假装完整。
+- 采集页面地址在持久化前必须脱敏；Cookie、token、签名参数、认证信息和登录态私有 URL 不得写入 Draft。
 
 ## 推荐工具
 
@@ -35,7 +36,8 @@
 ## 采集流程
 
 1. 确认输入。
-   - 记录用户提供的 URL、平台、期望主题名。
+   - URL 只在本次采集过程中临时使用；落盘时必须按第 2 步生成脱敏后的来源字段，不直接复制浏览器地址栏或用户提供的完整 URL。
+   - 记录平台和期望主题名。
    - 如果用户未提供主题名，从页面标题、首条用户消息或对话主题中提炼一个简短文件名。
    - 文件名格式为 `YYYY-MM-DD_对话主题.md`，不要在文件名中加入平台名。
    - 按 `.skills/draft-organizer/SKILL.md` 选择路径：已有匹配主题目录时保存到该目录；加入后同主题达到 3 个文件时创建主题目录并归组；否则可暂存于 `Drafts/` 根目录。
@@ -43,7 +45,10 @@
 2. 打开页面。
    - 优先打开用户提供的分享链接。
    - 如果分享链接无法访问、内容明显缺失或不是最新内容，改用已登录浏览器里的原始会话页面。
-   - 记录实际采集 URL；如果分享链接和登录态原始页面都使用过，在 frontmatter 中都写明。
+   - 持久化来源前移除 URL 中的用户名、密码、query 和 fragment；包含 token、签名、临时访问凭据或其他无法可靠脱敏信息时，不保留该 URL。
+   - 只有确认是可公开、稳定访问的分享链接时，才写入脱敏后的 `source_url`。登录态原始页面、私有会话页或无法安全持久化的地址使用 `source_url: omitted`，并写 `source_access: authenticated_private_page`。
+   - 如果安全分享链接和登录态原始页面都使用过，只保存安全分享链接；在“采集说明”中说明曾使用登录态页面补采，不保存其地址。
+   - 不读取、记录或导出 Cookie、Authorization header、local storage token 或其他会话凭据。
 
 3. 识别滚动容器和消息节点。
    - 不同平台只应在选择器、说话人识别、加载触发方式上做适配。
@@ -78,14 +83,15 @@
 8. 生成 Draft。
    - 使用本 skill 下方的 Markdown 格式。
    - 正文不做标题降级，不重写用户或 assistant 的 Markdown。
-   - 只在每条消息前插入 HTML speaker marker。
+   - 只在每条消息前插入带内联样式的 HTML speaker marker；用户和 assistant 必须使用不同颜色。
    - 不写入任何 LLM 思考过程。
 
 9. 复核。
    - 确认文件路径在 `Drafts/` 或其主题目录中，并符合 `.skills/draft-organizer/SKILL.md`。
    - 确认文档只有一个 `#` 顶级标题。
-   - 确认每条消息前都有 `<div data-speaker="...">` marker。
+   - 确认每条消息前都有 `<div data-speaker="..." style="...">` marker，且角色颜色、图标和标签符合本 skill 的映射。
    - 确认 frontmatter 中有采集状态和完整性说明。
+   - 确认 frontmatter 位于文件第一行，且 `source_url` 不含用户信息、query、fragment、token、签名参数或登录态私有地址；无法安全保留时必须为 `omitted`。
    - 确认最终 Draft 中没有 LLM 思考过程、搜索过程、工具调用过程或调试日志。
 
 ## Markdown 输出格式
@@ -93,10 +99,9 @@
 Draft 文件必须使用以下结构：
 
 ```md
-# 对话主题
-
 ---
-source_url: https://chatgpt.com/share/...
+source_url: "https://chatgpt.com/share/..."
+source_access: public_share
 source_platform: chatgpt
 captured_at: 2026-07-12
 capture_status: complete
@@ -106,17 +111,19 @@ removed_nonfinal_count: 3
 capture_method: playwright
 ---
 
+# 对话主题
+
 ## 采集说明
 
 - 完整性：连续 5 轮滚动后消息数不再增长，首尾消息稳定，页面无加载状态。
 - 内容过滤：已移除 LLM 思考过程、搜索过程或工具调用过程；最终 Draft 只保留正式对话。
 - 备注：如使用登录态原始页面补采，在这里说明。
 
-<div data-speaker="user">001 用户说：</div>
+<div data-speaker="user" style="display:block; width:100%; box-sizing:border-box; margin:1.5em 0 0.75em; padding:0.7em 1em; border-radius:6px; background:#0969da; color:#ffffff; font-size:1.25em; font-weight:700; line-height:1.4;"><strong>👤 001 用户说：</strong></div>
 
 这里是用户说原文。
 
-<div data-speaker="assistant">002 ChatGPT 说：</div>
+<div data-speaker="assistant" style="display:block; width:100%; box-sizing:border-box; margin:1.5em 0 0.75em; padding:0.7em 1em; border-radius:6px; background:#1f883d; color:#ffffff; font-size:1.25em; font-weight:700; line-height:1.4;"><strong>🤖 002 ChatGPT 说：</strong></div>
 
 ## 这里仍然是 assistant 原文里的二级标题
 
@@ -125,10 +132,14 @@ capture_method: playwright
 
 规则：
 
-- 顶部只允许一个 `# 对话主题`。
-- frontmatter 分隔线使用 `---`。
+- frontmatter 必须从文件第一行开始，结束后空一行再写 `# 对话主题`；分隔线使用 `---`。
+- 文档只允许一个 `# 对话主题` 顶级标题。
+- `source_access` 使用 `public_share` 或 `authenticated_private_page`；后者必须配合 `source_url: omitted`。
+- `source_url` 不得包含 userinfo、query、fragment、token、签名参数或登录态私有地址；没有可安全持久化的公开地址时使用 `omitted`。
 - 说话人 marker 使用英文半角双引号。
-- marker 独立成行，后面空一行，再写消息正文。
+- marker 必须保持为一行 HTML，独立成行；后面空一行，再写消息正文。
+- 用户 marker 固定使用蓝色 `#0969da` 和 `👤`，assistant marker 固定使用绿色 `#1f883d` 和 `🤖`，不要按平台随意换色。
+- marker 必须保留 `width:100%`、背景色、白色大号粗体和 `<strong>`；`<strong>` 与角色图标是渲染器过滤内联样式时的降级提示。
 - marker 不包裹正文，避免 Markdown 渲染器在 HTML block 内不解析 Markdown。
 - 消息正文保持原样；不要为了层级整洁而改写正文里的 `##`、`###`。
 - 消息正文只允许是正式对话内容；不要把 LLM 思考过程作为正文保存。
@@ -152,21 +163,25 @@ capture_method: playwright
 
 ## 说话人 marker
 
-格式：
+用户与 assistant 使用以下固定格式；只替换序号和 assistant 的展示名称，不改写样式：
 
 ```md
-<div data-speaker="{role}">{index:03d} {speaker_label}说：</div>
+<div data-speaker="user" style="display:block; width:100%; box-sizing:border-box; margin:1.5em 0 0.75em; padding:0.7em 1em; border-radius:6px; background:#0969da; color:#ffffff; font-size:1.25em; font-weight:700; line-height:1.4;"><strong>👤 {index:03d} 用户说：</strong></div>
+
+<div data-speaker="assistant" style="display:block; width:100%; box-sizing:border-box; margin:1.5em 0 0.75em; padding:0.7em 1em; border-radius:6px; background:#1f883d; color:#ffffff; font-size:1.25em; font-weight:700; line-height:1.4;"><strong>🤖 {index:03d} {speaker_label}说：</strong></div>
 ```
 
 常见映射：
 
-- 用户：`<div data-speaker="user">001 用户说：</div>`
-- ChatGPT：`<div data-speaker="assistant">002 ChatGPT 说：</div>`
-- Gemini：`<div data-speaker="assistant">002 Gemini 说：</div>`
-- 豆包：`<div data-speaker="assistant">002 豆包说：</div>`
+- 用户：蓝色背景、`👤`、`用户说：`。
+- ChatGPT：绿色背景、`🤖`、`ChatGPT 说：`。
+- Gemini：绿色背景、`🤖`、`Gemini 说：`。
+- 豆包：绿色背景、`🤖`、`豆包说：`。
 - 系统或工具消息：仅在用户明确要求保留时使用 `data-speaker="system"` 或 `data-speaker="tool"`。
 
 如果平台无法可靠区分 assistant 名称，使用平台名作为 `speaker_label`；如果平台也无法确认，使用 `AI`。
+
+`style` 可能被严格的 Markdown 渲染器清洗，因此 marker 不能只靠颜色表达角色：必须同时保留 `data-speaker`、`<strong>`、角色图标、序号和说话人文字。不要为了兼容性改用 Markdown 标题；这会重新引入正文标题层级冲突。
 
 ## 完整性状态
 
@@ -199,4 +214,5 @@ capture_method: playwright
 - 不要改写消息正文中的标题层级。
 - 不要默认生成额外 `.html` 或 `.json` 文件。
 - 不要把不完整采集标记为 `complete`。
+- 不要保存 Cookie、token、签名参数、认证 header、浏览器存储凭据或未脱敏的登录态 URL。
 - 不要删除或覆盖已有 Draft。只有在 `.skills/draft-organizer/SKILL.md` 的归组规则明确触发时，才可移动本次主题关系明确的 Draft，并必须修复路径引用。
