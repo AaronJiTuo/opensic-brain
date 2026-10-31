@@ -10,7 +10,7 @@
 - **规范性事实**：`Releases/` 说明项目“应该是什么”，默认可照着执行。
 - **当前状态**：`.records/CURRENT.md` 说明项目“实际上进行到哪里”，按需链接历史 Record。
 
-如果你是新接手的 agent，请先阅读 `AGENTS.md`，再阅读 `Releases/00_项目总览.md` 和 `.records/CURRENT.md`。
+如果你是新接手的 agent，请先阅读 `AGENTS.md`，并按 `.skills/brain-handoff/SKILL.md` 建立项目上下文。
 
 ## 目录结构
 
@@ -40,21 +40,22 @@ opensic-brain/
 6. 草稿成熟到可执行后升级为 `Releases/`；从 Draft 或 Record 生成 Release 时，按 `.skills/release-organizer/SKILL.md` 处理来源、证据、灵感索引与 Draft 去留。
 7. 被替代、完成使命或过时的内容迁移到 `Archive/`；历史 Record 不移动、不删除、不回写。
 
-> 协议 2.1.0 在留痕与成果保全之外，增加正常任务结束时的静默版本检查：没有新版或检查失败时不提示，只有发现新版才询问用户，并在用户明确同意后升级。检查和升级都不会自动执行 `git add`、`commit`、`pull`、`push`，也不会对关联代码仓库执行任何 Git 写操作。
+> 当前协议 2.4.1 使用正式稳定 Release 作为更新边界。普通具体任务在建立足够上下文后直接继续；正式接手按 `brain-handoff` 执行。版本提示优先使用可忽略的原生选项，用户明确同意后直接完成标准稳定升级。检查和升级不自动执行 Git 交付，也不对关联代码仓库执行 Git 写操作。
 
 ## 模板协议
 
-本 brain 已接入 `brain-template` 协议，当前版本见 `.brain-template.json`。未来如果需要同步模板机制，请按 `.skills/template-upgrader/SKILL.md` 执行；升级只能补齐流程协议，不能覆盖 OpenSiC 项目事实与定稿文档。
+本 brain 已接入 `brain-template` 稳定协议 `2.4.1`，来源为 Release `v2.4.1`，精确 SHA 为 `5e90be98803ab030745af620dd7a14e9baff0f44`；当前版本与托管文件清单见 `.brain-template.json`。需要同步模板机制时，按 `.skills/template-upgrader/SKILL.md` 执行；升级只补齐流程协议，不覆盖 OpenSiC 项目事实与定稿文档。
 
 ## 半自动协议更新
 
-升级到 2.1.0 后，agent 会在每次正常项目任务完成并验收后，对固定权威来源 `github.com/AaronJiTuo/brain-template` 做一次轻量只读检查：
+agent 会在每次正常项目任务完成并验收后，对固定权威来源 `github.com/AaronJiTuo/brain-template` 的正式稳定 Releases 做一次轻量只读检查；按 SemVer 选择最高版本，核验 tag、精确 SHA 和 manifest，`v2.3.1` 及以后还须是不可变 Release：
 
 - 本地已是最新版：不提示。
 - 网络不可用、超时或无法可靠判断：不提示，不影响原任务。
-- 发现更高版本：在原任务结果末尾说明当前版本、最新版本和更新摘要，询问是否升级。
+- 发现更高的有效稳定版本：先交付原任务结果，再优先用可忽略的原生选项说明当前版本、目标版本和更新收益；没有合适工具时保留简短文字入口。
 - 用户忽略或没有明确同意：不升级、不写入忽略状态。
-- 用户明确同意：下一轮按 `.skills/template-upgrader/SKILL.md` 从同一个远端 commit 快照执行非破坏升级。
+- 用户明确同意：按 `.skills/template-upgrader/SKILL.md` 从该 Release tag 的同一个精确 SHA 执行非破坏升级，先说明范围后直接完成，不重复请求同一升级的确认。
+- `main` 上未正式发布的开发快照不参与稳定更新检查；最高候选核验失败时不回退到较低版本或开发分支。
 
 版本检查本身不创建 Record、不修改 `.records/CURRENT.md`、不执行 Git 写操作。
 
@@ -63,13 +64,6 @@ opensic-brain/
 - 项目名称：`OpenSiC`（源于“碳化硅”，化学式 SiC）。
 - 主要域名：`opensic.ai`，`opensic.cn` 作为中国区预留。
 - 标识倾向：钻石语义，文本场景可用 `💎` 作为轻量识别符号。
-
-## 模板协议
-
-本 brain 已接入 `brain-template` 协议，当前版本见 `.brain-template.json`（稳定版 `2.4.0`，来源 Release `v2.4.0` / `133b6c781efe39f1d3bba5ec8af6f16d6d5b2543`）。  
-需要同步模板机制时，按 `.skills/template-upgrader/SKILL.md` 执行；升级只补齐流程协议，不覆盖 OpenSiC 项目事实与定稿文档。
-
-正常任务结束后，agent 会对权威来源 `github.com/AaronJiTuo/brain-template` 的正式稳定 Release 做轻量只读检查；无新版或检查失败时不提示，发现更高版本时询问是否升级。用户明确同意后直接完成标准稳定升级，不再二次确认。
 
 ## 如何让 agent 开始
 
@@ -82,7 +76,7 @@ opensic-brain/
 让新 agent 接手已有 brain（本仓库已有 `Releases/00_项目总览.md`）：
 
 ```text
-请先读 AGENTS.md，并按 .skills/brain-handoff/SKILL.md 接手当前项目。如果我同时给出了具体任务且不存在会实质改变执行结果的歧义，请在简要报告理解后直接继续，不要等待重复确认。
+请先读 `AGENTS.md`，并按 `.skills/brain-handoff/SKILL.md` 接手当前项目。先读 `Releases/00_项目总览.md` 和 `.records/CURRENT.md`，只按需读取少量相关 Record，不要全文扫描历史。如果我同时给出了具体任务且不存在会实质改变执行结果的歧义，请简要报告理解后直接继续，不要等待重复确认。任务：<你的任务>
 ```
 
 即使工具会自动读取 `AGENTS.md`，显式要求先读它，仍有助于不同工具从同一套规则开始。

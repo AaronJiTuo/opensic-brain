@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="400" height="400" role="img" aria-labelledby="title desc">
+  <title id="title">OpenSiC logo icon</title>
+  <desc id="desc">A simple moissanite-inspired diamond mark in silicon-carbide teal with stronger yellow-green fire.</desc>
+  <path d="M263.8 128.1l-124.1 215H388z" fill="#0FA895"/>
+  <path d="M512.1 900.1l124.1-557H388z" fill="#08685F"/>
+  <path d="M760.4 128.1l-124.2 215h248.3z" fill="#89B91E"/>
+  <path d="M512.1 128.1L388 343.1h248.2z" fill="#E7F5C8"/>
+  <path d="M388 343.1l124.1-215H263.8z" fill="#88D8C8"/>
+  <path d="M636.2 343.1l124.2-215H512.1z" fill="#B7D941"/>
+  <path d="M139.7 343.1l372.4 557-124.1-557z" fill="#24BFA8"/>
+  <path d="M636.2 343.1l-124.1 557 372.4-557z" fill="#6FAE1F"/>
+</svg>
